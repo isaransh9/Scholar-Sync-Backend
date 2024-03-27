@@ -40,6 +40,12 @@ const userSchema = new Schema(
     aboutMe: {  // Not on signup page
       type: String,
     },
+    openings: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Job'
+      }
+    ],
     password: {
       type: String,
       required: [true, 'Password is required']

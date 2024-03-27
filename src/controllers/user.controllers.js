@@ -5,6 +5,7 @@ import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
+import { Job } from '../models/jobQuery.model.js';
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -287,4 +288,43 @@ const uploadUserProfilePicture = asyncHandler(async (req, res) => {
 
 })
 
-export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, uploadUserProfilePicture, refreshAccessToken }
+const uploadOpenings = asyncHandler(async (req, res) => {
+  const { titleOfJob, domain, stipend, durationInMonths } = req.body;
+
+  if (!domain.length || !titleOfJob || !durationInMonths) {
+    throw new ApiError(400, 'All fields are required!!');
+  }
+
+  const moreAboutJobLocalPath = req.files?.moreAboutJob[0]?.path;
+
+  if (!moreAboutJobLocalPath) {
+    throw new ApiError(400, 'File not found!!');
+  }
+
+  const moreAboutJobPath = await uploadOnCloudinary(moreAboutJobLocalPath);
+
+  if (!moreAboutJobPath) {
+    throw new ApiError(501, 'Failed to upload file on cloudinary!!');
+  }
+
+  const createdJob = await Job.create({
+    titleOfJob,
+    user: req.user._id,
+    domain,
+    moreAboutJob: moreAboutJobPath?.url,
+    stipend,
+    durationInMonths,
+  });
+
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, { $push: { openings: createdJob } }, { new: true }).select('-password -refreshToken');
+
+  if (!updatedUser) {
+    throw new ApiError(500, 'Failed to make changes in database!!');
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, updatedUser, 'Successfully posted job!!')
+  )
+})
+
+export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, uploadUserProfilePicture, uploadOpenings, refreshAccessToken }
