@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { loginUser, registerUser, logoutUser, verifyEmail, uploadUserProfilePicture, refreshAccessToken, uploadOpenings } from "../controllers/user.controllers.js";
+import { loginUser, registerUser, logoutUser, verifyEmail, uploadUserProfilePicture, refreshAccessToken, uploadOpenings, getAllJobPost } from "../controllers/user.controllers.js";
 import { upload } from '../middlewares/multer.middleware.js'
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
@@ -24,7 +24,6 @@ router.route('/uploadProfilePicture').post(verifyJWT, upload.fields([
   }
 ]),
   uploadUserProfilePicture);
-
 router.route('/uploadOpenings').post(verifyJWT, upload.fields([
   {
     name: 'moreAboutJob',
@@ -32,6 +31,7 @@ router.route('/uploadOpenings').post(verifyJWT, upload.fields([
   }
 ]),
   uploadOpenings);
+router.route('/getAllJobPost').post(verifyJWT, getAllJobPost);
 
 
 // router.route('/refresh-token').post(refreshAccessToken);

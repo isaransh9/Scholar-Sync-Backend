@@ -27,6 +27,10 @@ const jobSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  lastDate: {
+    type: Date,
+    required: true
+  },
   likes: {
     type: Number,
     default: 0,

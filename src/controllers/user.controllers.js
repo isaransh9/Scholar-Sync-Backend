@@ -66,8 +66,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
-// Everything is working fine till email verification
-
 const sendVerificationEmail = async (fullName, email, userId) => {
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
@@ -121,11 +119,9 @@ const registerUser = asyncHandler(async (req, res) => {
   // check for Business creation 
   // return res
 
-  const { fullName, email, collegeName, phoneNumber, domain, password } = req.body;  // getting Business details
-  console.log(req.body);
-
+  const { fullName, email, collegeName, phoneNumber, domain, password, role } = req.body;  // getting Business details
   if (
-    [fullName, email, collegeName, phoneNumber, password].some((field) => field?.trim() === "")
+    [fullName, email, collegeName, phoneNumber, role, password].some((field) => field?.trim() === "")
     // Iterates over the items and checks if empty or not
   ) {
     throw new ApiError(400, "All fields are required");
@@ -160,7 +156,8 @@ const registerUser = asyncHandler(async (req, res) => {
     phoneNumber,
     domain,
     profilePicture: profilePicture?.url,
-    password
+    password,
+    role,
   });
 
   // if Business is created then select all by default and remove password and refreshToken 
@@ -289,31 +286,36 @@ const uploadUserProfilePicture = asyncHandler(async (req, res) => {
 })
 
 const uploadOpenings = asyncHandler(async (req, res) => {
-  const { titleOfJob, domain, stipend, durationInMonths } = req.body;
-
-  if (!domain.length || !titleOfJob || !durationInMonths) {
+  const { titleOfJob, domain, stipend, durationInMonths, lastDate } = req.body;
+  if (!domain.length || !titleOfJob || !durationInMonths || !lastDate) {
     throw new ApiError(400, 'All fields are required!!');
   }
 
-  const moreAboutJobLocalPath = req.files?.moreAboutJob[0]?.path;
+  let moreAboutJobPath;
+  // Checking if file is uploaded or not
+  if (req.files && req.files.moreAboutJob) {
+    // File was uploaded
+    const moreAboutJobLocalPath = req.files.moreAboutJob[0].path;
+    moreAboutJobPath = await uploadOnCloudinary(moreAboutJobLocalPath);
 
-  if (!moreAboutJobLocalPath) {
-    throw new ApiError(400, 'File not found!!');
-  }
-
-  const moreAboutJobPath = await uploadOnCloudinary(moreAboutJobLocalPath);
-
-  if (!moreAboutJobPath) {
-    throw new ApiError(501, 'Failed to upload file on cloudinary!!');
+    if (!moreAboutJobPath) {
+      throw new ApiError(501, 'Failed to upload file on cloudinary!!');
+    }
+    // File successfully uploaded to cloudinary thus extracting its url
+    moreAboutJobPath = moreAboutJobPath?.url;
+  } else {
+    // No file uploaded that means we must have received link from the frontend
+    moreAboutJobPath = req.body.moreAboutJob;
   }
 
   const createdJob = await Job.create({
     titleOfJob,
     user: req.user._id,
     domain,
-    moreAboutJob: moreAboutJobPath?.url,
+    moreAboutJob: moreAboutJobPath,
     stipend,
     durationInMonths,
+    lastDate,
   });
 
   const updatedUser = await User.findByIdAndUpdate(req.user._id, { $push: { openings: createdJob } }, { new: true }).select('-password -refreshToken');
@@ -327,4 +329,20 @@ const uploadOpenings = asyncHandler(async (req, res) => {
   )
 })
 
-export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, uploadUserProfilePicture, uploadOpenings, refreshAccessToken }
+const getAllJobPost = asyncHandler(async (req, res) => {
+  const myId = req.user._id;
+  const user = await User.findById(req.user._id);
+  const posts = await Job.find({user: { $ne: myId }})
+    .sort({ createdAt: -1 }) // Sort by createdAt field in descending order to get the latest posts first
+    .populate('user');
+
+  if (!posts.length) {
+    throw new ApiError(500, 'Not able to get post details!!');
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, posts, 'Details fetched successfully!!!')
+  )
+})
+
+export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, getAllJobPost, uploadUserProfilePicture, uploadOpenings, refreshAccessToken }
