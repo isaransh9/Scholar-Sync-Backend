@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { loginUser, registerUser, logoutUser, verifyEmail, uploadUserProfilePicture, refreshAccessToken, uploadOpenings, getAllJobPost } from "../controllers/user.controllers.js";
+import { loginUser, registerUser, logoutUser, verifyEmail, uploadUserProfilePicture, refreshAccessToken, uploadOpenings, getAllJobPost, getUserOfSameCollege, getJobsOfSameCollege, getPreviousPost } from "../controllers/user.controllers.js";
 import { upload } from '../middlewares/multer.middleware.js'
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { get } from "mongoose";
 
 const router = Router();
 router.route('/register').post(
@@ -32,7 +33,9 @@ router.route('/uploadOpenings').post(verifyJWT, upload.fields([
 ]),
   uploadOpenings);
 router.route('/getAllJobPost').post(verifyJWT, getAllJobPost);
-
+router.route('/getUserOfSameCollege').post(verifyJWT, getUserOfSameCollege);
+router.route('/getJobsOfSameCollege').post(verifyJWT, getJobsOfSameCollege);
+router.route('/getPreviousPost').post(verifyJWT, getPreviousPost);
 
 // router.route('/refresh-token').post(refreshAccessToken);
 // router.route('/change-password').post(verifyJWT, changeCurrentPassword);

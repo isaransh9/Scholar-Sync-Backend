@@ -187,6 +187,7 @@ const loginUser = asyncHandler(async (req, res) => {
   // Successfully logged in
 
   const { password, email } = req.body;
+  console.log(req.body);
 
   // if email is not available
   if (!email) {
@@ -286,36 +287,21 @@ const uploadUserProfilePicture = asyncHandler(async (req, res) => {
 })
 
 const uploadOpenings = asyncHandler(async (req, res) => {
-  const { titleOfJob, domain, stipend, durationInMonths, lastDate } = req.body;
-  if (!domain.length || !titleOfJob || !durationInMonths || !lastDate) {
+  const { titleOfJob, domain, stipend, typeOfJob, durationInMonths, lastDate, moreAboutJob } = req.body;
+
+  if (!titleOfJob || !durationInMonths || !lastDate) {
     throw new ApiError(400, 'All fields are required!!');
-  }
-
-  let moreAboutJobPath;
-  // Checking if file is uploaded or not
-  if (req.files && req.files.moreAboutJob) {
-    // File was uploaded
-    const moreAboutJobLocalPath = req.files.moreAboutJob[0].path;
-    moreAboutJobPath = await uploadOnCloudinary(moreAboutJobLocalPath);
-
-    if (!moreAboutJobPath) {
-      throw new ApiError(501, 'Failed to upload file on cloudinary!!');
-    }
-    // File successfully uploaded to cloudinary thus extracting its url
-    moreAboutJobPath = moreAboutJobPath?.url;
-  } else {
-    // No file uploaded that means we must have received link from the frontend
-    moreAboutJobPath = req.body.moreAboutJob;
   }
 
   const createdJob = await Job.create({
     titleOfJob,
     user: req.user._id,
     domain,
-    moreAboutJob: moreAboutJobPath,
+    moreAboutJob: moreAboutJob,
     stipend,
     durationInMonths,
     lastDate,
+    typeOfJob,
   });
 
   const updatedUser = await User.findByIdAndUpdate(req.user._id, { $push: { openings: createdJob } }, { new: true }).select('-password -refreshToken');
@@ -345,4 +331,47 @@ const getAllJobPost = asyncHandler(async (req, res) => {
   )
 })
 
-export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, getAllJobPost, uploadUserProfilePicture, uploadOpenings, refreshAccessToken }
+const getUserOfSameCollege = asyncHandler(async (req, res) => {
+  const userCollegeName = req.user.collegeName;
+  const collegeUsers = await User.find({ collegeName: userCollegeName });
+  return res.status(200).json(
+    new ApiResponse(200, collegeUsers, 'Details fetched successfully!!!')
+  )
+})
+
+const getJobsOfSameCollege = asyncHandler(async (req, res) => {
+  const userCollegeName = req.user.collegeName;
+
+  const jobs = await Job.aggregate([
+    {
+      $lookup: {
+        from: 'users', // name of the user collection
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user',
+      },
+    },
+    {
+      $unwind: '$user',
+    },
+    {
+      $match: {
+        'user.collegeName': userCollegeName,
+      },
+    },
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(200, jobs, 'Details fetched successfully!!!')
+  )
+})
+
+const getPreviousPost = asyncHandler(async (req, res) => {
+  const openingIds = req.user.openings;
+  const getJobs = await Job.find({ _id: { $in: openingIds } });
+  return res.status(200).json(
+    new ApiResponse(200, getJobs, 'Details fetched successfully!!!')
+  );
+})
+
+export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, getAllJobPost, uploadUserProfilePicture, uploadOpenings, refreshAccessToken, getUserOfSameCollege, getJobsOfSameCollege, getPreviousPost }

@@ -10,6 +10,11 @@ const jobSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  typeOfJob: {
+    type: String,
+    required : true,
+    enum :['remote','onsite']
+  },
   domain: [
     {
       type: String,
