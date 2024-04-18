@@ -287,7 +287,15 @@ const uploadUserProfilePicture = asyncHandler(async (req, res) => {
 })
 
 const uploadOpenings = asyncHandler(async (req, res) => {
-  const { titleOfJob, domain, stipend, typeOfJob, durationInMonths, lastDate, moreAboutJob } = req.body;
+  const { titleOfJob, domain, stipend, isRemote, isOnSite, durationInMonths, lastDate, detailsLink } = req.body;
+
+  let typeOfJob;
+  if (isRemote) {
+    typeOfJob = "remote";
+  }
+  else {
+    typeOfJob = "onsite";
+  }
 
   if (!titleOfJob || !durationInMonths || !lastDate) {
     throw new ApiError(400, 'All fields are required!!');
@@ -297,7 +305,7 @@ const uploadOpenings = asyncHandler(async (req, res) => {
     titleOfJob,
     user: req.user._id,
     domain,
-    moreAboutJob: moreAboutJob,
+    moreAboutJob: detailsLink,
     stipend,
     durationInMonths,
     lastDate,
