@@ -326,7 +326,7 @@ const uploadOpenings = asyncHandler(async (req, res) => {
 const getAllJobPost = asyncHandler(async (req, res) => {
   const myId = req.user._id;
   const user = await User.findById(req.user._id);
-  const posts = await Job.find({user: { $ne: myId }})
+  const posts = await Job.find({ user: { $ne: myId } })
     .sort({ createdAt: -1 }) // Sort by createdAt field in descending order to get the latest posts first
     .populate('user');
 
