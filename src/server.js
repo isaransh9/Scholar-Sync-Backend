@@ -1,9 +1,9 @@
-
-import path from "path";
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import userRouter from './routes/user.routes.js';
+import profileRouter from './routes/profile.routes.js';
+import jobRouter from './routes/job.routes.js';
 import connectDB from "./db/index.js";
 import { app, server } from './socket/socket.js'
 import cors from 'cors';
@@ -33,6 +33,8 @@ connectDB()
 
 // Routes
 app.use('/api/v1/user', userRouter);
+app.use('/api/v1/profile', profileRouter);
+app.use('/api/v1/job',jobRouter);
 // Actual url ==> http://localhost:8000/api/v1/user/register
 
 

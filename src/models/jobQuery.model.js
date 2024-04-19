@@ -39,7 +39,13 @@ const jobSchema = new mongoose.Schema({
   likes: {
     type: Number,
     default: 0,
-  }
+  },
+  appliedBy: [
+    {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    }
+  ]
 }, { timestamps: true });
 
 export const Job = mongoose.model('Job', jobSchema);

@@ -1,11 +1,9 @@
 import asyncHandler from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { User } from '../models/user.model.js';
-import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer'
-import { Job } from '../models/jobQuery.model.js';
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -108,21 +106,10 @@ const verifyEmail = asyncHandler(async (req, res) => {
 })
 
 const registerUser = asyncHandler(async (req, res) => {
-  // Algorithm/Procedure that we will be performing to register Businesss
-  // get Business detail from the frontend
-  // validate the received Business info -- not empty, constraints
-  // check if Business already registered -- through Businessname or email
-  // check for images received and avatar is must
-  // upload them to cloudinary server
-  // create Business object -- entry in db
-  // remove hashed password, refresh token from response object
-  // check for Business creation 
-  // return res
 
-  const { fullName, email, collegeName, phoneNumber, domain, password, role } = req.body;  // getting Business details
+  const { fullName, email, collegeName, phoneNumber, domain, password, role } = req.body;
   if (
     [fullName, email, collegeName, phoneNumber, role, password].some((field) => field?.trim() === "")
-    // Iterates over the items and checks if empty or not
   ) {
     throw new ApiError(400, "All fields are required");
   }
@@ -133,34 +120,16 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "User already exists");
   }
 
-  // ? handles if it do not exist
-  // Getting the path to the file on local server which is saved by multer
-  const profilePictureLocalPath = req.files?.profilePicture[0]?.path;
-
-
-  // if local path exist then kindly upload it to cloudinary
-  var profilePicture = null;
-  if (profilePictureLocalPath) {
-    profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
-    if (!profilePicture) {
-      throw new ApiError(400, "Failed to upload profile picture on cloudinary");
-    }
-  }
-
-
-  // Creating instance of Business and storing the details in the DB
   const user = await User.create({
     fullName,
     email,
     collegeName,
     phoneNumber,
     domain,
-    profilePicture: profilePicture?.url,
     password,
     role,
   });
 
-  // if Business is created then select all by default and remove password and refreshToken 
   const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
   );
@@ -187,7 +156,6 @@ const loginUser = asyncHandler(async (req, res) => {
   // Successfully logged in
 
   const { password, email } = req.body;
-  console.log(req.body);
 
   // if email is not available
   if (!email) {
@@ -259,127 +227,13 @@ const logoutUser = asyncHandler(async (req, res) => {
     )
 })
 
-const uploadUserProfilePicture = asyncHandler(async (req, res) => {
-  //Extracting the local path of the file
-  const profilePictureLocalPath = req.files?.profilePicture[0]?.path;
-
-  // if local path does not exist that means file DNE on server
-  if (!profilePictureLocalPath) {
-    throw new ApiError(404, "Kindly attach profile picture");
-  }
-
-  // Upload file on cloudinary
-  const profilePicture = await uploadOnCloudinary(profilePictureLocalPath);
-
-  // If url not received from cloudinary
-  if (!profilePicture) {
-    throw new ApiError(400, 'Failed to upload picture on cloudinary!!');
-  }
-
-  // if everything is perfect then update the url received from cloudinary
-  const updatedUser = await User.findByIdAndUpdate(req.user._id, { profilePicture: profilePicture?.url }, { new: true }).select("-password -refreshToken");
-  // Here due to {new : true}, we will get the updated user
-
-  return res.status(200).json(
-    new ApiResponse(200, updatedUser, "Profile Picture uploaded successfully")
-  );
-
-})
-
-const uploadOpenings = asyncHandler(async (req, res) => {
-  const { titleOfJob, domain, stipend, isRemote, isOnSite, durationInMonths, lastDate, detailsLink } = req.body;
-
-  let typeOfJob;
-  if (isRemote) {
-    typeOfJob = "remote";
-  }
-  else {
-    typeOfJob = "onsite";
-  }
-
-  if (!titleOfJob || !durationInMonths || !lastDate) {
-    throw new ApiError(400, 'All fields are required!!');
-  }
-
-  const createdJob = await Job.create({
-    titleOfJob,
-    user: req.user._id,
-    domain,
-    moreAboutJob: detailsLink,
-    stipend,
-    durationInMonths,
-    lastDate,
-    typeOfJob,
-  });
-
-  const updatedUser = await User.findByIdAndUpdate(req.user._id, { $push: { openings: createdJob } }, { new: true }).select('-password -refreshToken');
-
-  if (!updatedUser) {
-    throw new ApiError(500, 'Failed to make changes in database!!');
-  }
-
-  return res.status(200).json(
-    new ApiResponse(200, updatedUser, 'Successfully posted job!!')
-  )
-})
-
-const getAllJobPost = asyncHandler(async (req, res) => {
-  const myId = req.user._id;
-  const user = await User.findById(req.user._id);
-  const posts = await Job.find({ user: { $ne: myId } })
-    .sort({ createdAt: -1 }) // Sort by createdAt field in descending order to get the latest posts first
-    .populate('user');
-
-  if (!posts.length) {
-    throw new ApiError(500, 'Not able to get post details!!');
-  }
-
-  return res.status(200).json(
-    new ApiResponse(200, posts, 'Details fetched successfully!!!')
-  )
-})
-
 const getUserOfSameCollege = asyncHandler(async (req, res) => {
   const userCollegeName = req.user.collegeName;
-  const collegeUsers = await User.find({ collegeName: userCollegeName });
+  const myId = req.user._id;
+  const collegeUsers = await User.find({ collegeName: userCollegeName,_id: { $ne: myId }  });
   return res.status(200).json(
-    new ApiResponse(200, collegeUsers, 'Details fetched successfully!!!')
+    new ApiResponse(200, collegeUsers, 'Same College User details fetched successfully!!!')
   )
 })
 
-const getJobsOfSameCollege = asyncHandler(async (req, res) => {
-  const userCollegeName = req.user.collegeName;
-
-  const jobs = await Job.aggregate([
-    {
-      $lookup: {
-        from: 'users', // name of the user collection
-        localField: 'user',
-        foreignField: '_id',
-        as: 'user',
-      },
-    },
-    {
-      $unwind: '$user',
-    },
-    {
-      $match: {
-        'user.collegeName': userCollegeName,
-      },
-    },
-  ]);
-
-  return res.status(200).json(
-    new ApiResponse(200, jobs, 'Details fetched successfully!!!')
-  )
-})
-
-const getPreviousPost = asyncHandler(async (req, res) => {
-  const openingIds = req.user.openings;
-  const getJobs = await Job.find({ _id: { $in: openingIds } });
-  return res.status(200).json(
-    new ApiResponse(200, getJobs, 'Details fetched successfully!!!')
-  );
-})
-
-export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, getAllJobPost, uploadUserProfilePicture, uploadOpenings, refreshAccessToken, getUserOfSameCollege, getJobsOfSameCollege, getPreviousPost }
+export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, refreshAccessToken, getUserOfSameCollege}
