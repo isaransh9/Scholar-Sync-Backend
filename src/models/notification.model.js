@@ -17,4 +17,4 @@ const notiSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-export const Job = mongoose.model('Notification', notiSchema);
+export const Notification = mongoose.model('Notification', notiSchema);

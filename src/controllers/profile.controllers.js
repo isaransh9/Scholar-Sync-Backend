@@ -38,7 +38,6 @@ const uploadUserProfilePicture = asyncHandler(async (req, res) => {
 
 const addEducation = asyncHandler(async (req, res) => {
   const { university, degree, grade, fieldOfStudy, startDate, endDate } = req.body;
-
   const createEducation = await Education.create({
     university,
     degree,
@@ -66,7 +65,6 @@ const addEducation = asyncHandler(async (req, res) => {
 
 const addProject = asyncHandler(async (req, res) => {
   const { projectTitle, description, projectLink, skills } = req.body;
-
   const createProject = await Project.create({
     projectTitle,
     description,
@@ -92,7 +90,6 @@ const addProject = asyncHandler(async (req, res) => {
 
 const addCertificate = asyncHandler(async (req, res) => {
   const { title, certificateLink, description } = req.body;
-
   const createCertificate = await Certificate.create({
     title,
     certificateLink,
@@ -114,7 +111,6 @@ const addCertificate = asyncHandler(async (req, res) => {
 
 const addPosOfRes = asyncHandler(async (req, res) => {
   const { positionOfResponsibility, institute } = req.body;
-
   const createPosOfRes = await POR.create({
     positionOfResponsibility,
     institute
@@ -138,7 +134,6 @@ const addPosOfRes = asyncHandler(async (req, res) => {
 
 const addWorkExperience = asyncHandler(async (req, res) => {
   const { companyName, certificateLink, startDate, endDate } = req.body;
-
   const createWorkExperience = await WorkExperience.create({
     companyName,
     certificateLink,
@@ -170,7 +165,6 @@ const addSkill = asyncHandler(async (req, res) => {
 
   const user = await User.findById(req.user._id);
   user.profileSection.skills.push(skill);
-  console.log(user);
   await user.save();
 
   return res.status(200).json(
@@ -183,7 +177,6 @@ const addSkill = asyncHandler(async (req, res) => {
 
 const deleteEducation = asyncHandler(async (req, res) => {
   const { educationId } = req.params;
-  console.log(educationId);
 
   const deletedEducation = await Education.findByIdAndDelete(educationId);
 
@@ -300,4 +293,48 @@ const deleteSkill = asyncHandler(async (req, res) => {
   )
 })
 
-export { addEducation, uploadUserProfilePicture, addCertificate, addProject, addPosOfRes, addWorkExperience, addSkill, deleteEducation, deleteCertificate, deleteProject, deletePosOfRes, deleteWorkExperience, deleteSkill }
+const viewProfile = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findById(userId).populate('profileSection.education').populate('profileSection.positionOfResponsibility').populate('profileSection.project').populate('profileSection.workExperience').populate('profileSection.certificate');
+
+  if (!user) {
+    throw new ApiError(404, 'User not found!!');
+  }
+
+  const profileSection = {
+    ...user.profileSection.toObject(),
+    domain: user.domain,
+  };
+
+  if (!profileSection) {
+    throw new ApiError(404, 'User profileSection does not exist!!');
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      "User profile retrieved successfully!!",
+      profileSection
+    )
+  )
+})
+
+const getNotifications = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).populate({
+    path: 'notifications',
+    options: { sort: { createdAt: -1 }, limit: 10 }
+  });
+  const notifications = user.notifications;
+  if (!user) {
+    throw new ApiError(404, 'User not found!!');
+  }
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      "Notifications retrieved successfully!!",
+      notifications
+    )
+  )
+})
+
+export { addEducation, uploadUserProfilePicture, addCertificate, addProject, addPosOfRes, addWorkExperience, addSkill, deleteEducation, deleteCertificate, deleteProject, deletePosOfRes, deleteWorkExperience, deleteSkill, viewProfile, getNotifications }

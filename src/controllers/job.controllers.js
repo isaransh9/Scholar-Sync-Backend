@@ -3,10 +3,10 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { Job } from "../models/jobQuery.model.js";
 import { User } from "../models/user.model.js";
+import { Notification } from "../models/notification.model.js";
 
 const uploadOpenings = asyncHandler(async (req, res) => {
   const { titleOfJob, domain, stipend, isRemote, isOnSite, durationInMonths, lastDate, detailsLink } = req.body;
-
   let typeOfJob;
   if (isRemote) {
     typeOfJob = "remote";
@@ -41,12 +41,41 @@ const uploadOpenings = asyncHandler(async (req, res) => {
   )
 })
 
+const userAppliedOnJob = asyncHandler(async (req, res) => {
+  const { jobId } = req.params;
+  const job = await Job.findByIdAndUpdate(jobId, { $push: { appliedBy: req.user._id } }, { new: true });
+
+  if (!job) {
+    throw new ApiError(404, 'Job not found!!');
+  }
+  const jobOwnerId = job.user;
+
+  const createNotification = await Notification.create({
+    generatedBy: req.user._id,
+    generatedFor: jobOwnerId,
+    message: `${req.user.fullName} from ${req.user.collegeName} applied on your job titled "${job.titleOfJob}"`
+  });
+
+  if (!createNotification) {
+    throw new ApiError(500, 'Failed to create notification!!');
+  }
+
+  const updateOwner = await User.findByIdAndUpdate(jobOwnerId, { $push: { notifications: createNotification._id } }, { new: true });
+
+  if (!updateOwner) {
+    throw new ApiError(500, 'Failed update owner data!!');
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, 'Successfully applied on job!!')
+  )
+
+})
+
 const getAllJobPost = asyncHandler(async (req, res) => {
   const myId = req.user._id;
   const user = await User.findById(req.user._id);
-  const posts = await Job.find({ user: { $ne: myId } })
-    .sort({ createdAt: -1 }) // Sort by createdAt field in descending order to get the latest posts first
-    .populate('user');
+  const posts = await Job.find({ user: { $ne: myId }, appliedBy: { $nin: [myId] } }).sort({ createdAt: -1 }).populate('user');
   return res.status(200).json(
     new ApiResponse(200, posts, 'Details fetched successfully!!!')
   )
@@ -54,11 +83,12 @@ const getAllJobPost = asyncHandler(async (req, res) => {
 
 const getJobsOfSameCollege = asyncHandler(async (req, res) => {
   const userCollegeName = req.user.collegeName;
-
+  const currentUserID = req.user._id;
   const jobs = await Job.aggregate([
+    // Match jobs created by users from the same college
     {
       $lookup: {
-        from: 'users', // name of the user collection
+        from: 'users',
         localField: 'user',
         foreignField: '_id',
         as: 'user',
@@ -71,6 +101,16 @@ const getJobsOfSameCollege = asyncHandler(async (req, res) => {
       $match: {
         'user.collegeName': userCollegeName,
       },
+    },
+    // Exclude jobs where the current user has already applied
+    {
+      $match: {
+        appliedBy: { $ne: currentUserID },
+      },
+    },
+    // Optionally, add more stages like sorting, limiting, etc.
+    {
+      $sort: { createdAt: -1 },
     },
   ]);
 
@@ -87,4 +127,4 @@ const getPreviousPost = asyncHandler(async (req, res) => {
   );
 })
 
-export { uploadOpenings, getAllJobPost, getJobsOfSameCollege, getPreviousPost }
+export { uploadOpenings, getAllJobPost, getJobsOfSameCollege, getPreviousPost, userAppliedOnJob }

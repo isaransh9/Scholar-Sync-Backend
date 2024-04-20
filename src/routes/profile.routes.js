@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addCertificate, addEducation, addPosOfRes, addProject, addSkill, addWorkExperience, deleteCertificate, deleteEducation, deletePosOfRes, deleteProject, deleteSkill, deleteWorkExperience, uploadUserProfilePicture } from "../controllers/profile.controllers.js";
+import { addCertificate, addEducation, addPosOfRes, addProject, addSkill, addWorkExperience, deleteCertificate, deleteEducation, deletePosOfRes, deleteProject, deleteSkill, deleteWorkExperience, getNotifications, uploadUserProfilePicture, viewProfile } from "../controllers/profile.controllers.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
@@ -28,5 +28,9 @@ router.route('/deleteProject/:projectId').post(verifyJWT,deleteProject);
 router.route('/deletePosOfRes/:posOfResId').post(verifyJWT,deletePosOfRes);
 router.route('/deleteWorkExperience/:workExperienceId').post(verifyJWT,deleteWorkExperience);
 router.route('/deleteSkill').post(verifyJWT,deleteSkill);
+
+// View profile of user
+router.route('/viewProfile/:userId').post(verifyJWT,viewProfile);
+router.route('/getNotification').post(verifyJWT,getNotifications);
 
 export default router;

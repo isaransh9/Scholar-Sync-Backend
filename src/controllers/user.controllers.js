@@ -87,7 +87,6 @@ const sendVerificationEmail = async (fullName, email, userId) => {
 
   try {
     const info = await transporter.sendMail(mailOptions);
-    console.log('Verification email sent successfully:', info.messageId);
   } catch (error) {
     console.error('Error sending verification email:', error);
     throw new ApiError(400, 'Something went wrong while sending verification email');
@@ -230,10 +229,10 @@ const logoutUser = asyncHandler(async (req, res) => {
 const getUserOfSameCollege = asyncHandler(async (req, res) => {
   const userCollegeName = req.user.collegeName;
   const myId = req.user._id;
-  const collegeUsers = await User.find({ collegeName: userCollegeName,_id: { $ne: myId }  });
+  const collegeUsers = await User.find({ collegeName: userCollegeName, _id: { $ne: myId } });
   return res.status(200).json(
     new ApiResponse(200, collegeUsers, 'Same College User details fetched successfully!!!')
   )
 })
 
-export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, refreshAccessToken, getUserOfSameCollege}
+export { registerUser, loginUser, logoutUser, verifyEmail, sendVerificationEmail, refreshAccessToken, getUserOfSameCollege }
