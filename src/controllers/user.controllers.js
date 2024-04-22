@@ -81,8 +81,8 @@ const sendVerificationEmail = async (fullName, email, userId) => {
     to: email,
     subject: 'Verification email',
 
-    // What even you want to send here
-    html: '<p>Hii' + fullName + ', please click here to <a href="http://127.0.0.1:8000/api/v1/user/verify?id=' + userId + '"> Verify </a> your mail.</p>'
+    // What ever you want to send here
+    html: '<p>Hii' + fullName + ', please click here to <a href="https://scholar-sync-backend-3.onrender.com/api/v1/user/verify?id=' + userId + '"> Verify </a> your mail.</p>'
   }
 
   try {
@@ -166,6 +166,10 @@ const loginUser = asyncHandler(async (req, res) => {
 
   if (!user) {
     throw new ApiError(404, "User does not exist!!");
+  }
+
+  if (user.isVerified === false) {
+    throw new ApiError(422, "Kindly verify your account!!");
   }
 
   const isPasswordValid = await user.isPasswordCorrect(password);
