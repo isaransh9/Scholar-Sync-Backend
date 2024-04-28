@@ -105,7 +105,7 @@ const verifyEmail = asyncHandler(async (req, res) => {
 })
 
 const registerUser = asyncHandler(async (req, res) => {
-
+  console.log("Register API Called")
   const { fullName, email, collegeName, phoneNumber, domain, password, role } = req.body;
   if (
     [fullName, email, collegeName, phoneNumber, role, password].some((field) => field?.trim() === "")
@@ -145,6 +145,7 @@ const registerUser = asyncHandler(async (req, res) => {
 })
 
 const loginUser = asyncHandler(async (req, res) => {
+  console.log("Login API Called")
   // Algorithm
   // Extract the data received from the frontend --> req.body
   // Validate the data
@@ -204,6 +205,7 @@ const loginUser = asyncHandler(async (req, res) => {
 })
 
 const logoutUser = asyncHandler(async (req, res) => {
+  console.log("Logout API Called")
   await User.findByIdAndUpdate(
     req.user._id,
     {
@@ -231,6 +233,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 })
 
 const getUserOfSameCollege = asyncHandler(async (req, res) => {
+  console.log("GetUserOfSameCollege API Called")
   const userCollegeName = req.user.collegeName;
   const myId = req.user._id;
   const collegeUsers = await User.find({ collegeName: userCollegeName, _id: { $ne: myId } });

@@ -10,6 +10,7 @@ import { POR } from "../models/por.model.js";
 import { WorkExperience } from "../models/workExperience.model.js";
 
 const uploadUserProfilePicture = asyncHandler(async (req, res) => {
+  console.log("uploadUserProfilePicture API Called")
   //Extracting the local path of the file
   const profilePictureLocalPath = req.files?.profilePicture[0]?.path;
 
@@ -37,6 +38,7 @@ const uploadUserProfilePicture = asyncHandler(async (req, res) => {
 })
 
 const addEducation = asyncHandler(async (req, res) => {
+  console.log("addEducation API Called")
   const { university, degree, grade, fieldOfStudy, startDate, endDate } = req.body;
   const createEducation = await Education.create({
     university,
@@ -64,6 +66,7 @@ const addEducation = asyncHandler(async (req, res) => {
 })
 
 const addProject = asyncHandler(async (req, res) => {
+  console.log("addProject API Called")
   const { projectTitle, description, projectLink, skills } = req.body;
   const createProject = await Project.create({
     projectTitle,
@@ -89,6 +92,8 @@ const addProject = asyncHandler(async (req, res) => {
 })
 
 const addCertificate = asyncHandler(async (req, res) => {
+  console.log("addCertificate API Called")
+
   const { title, certificateLink, description } = req.body;
   const createCertificate = await Certificate.create({
     title,
@@ -110,6 +115,8 @@ const addCertificate = asyncHandler(async (req, res) => {
 })
 
 const addPosOfRes = asyncHandler(async (req, res) => {
+  console.log("addPosOfRes API Called")
+
   const { positionOfResponsibility, institute } = req.body;
   const createPosOfRes = await POR.create({
     positionOfResponsibility,
@@ -133,6 +140,8 @@ const addPosOfRes = asyncHandler(async (req, res) => {
 })
 
 const addWorkExperience = asyncHandler(async (req, res) => {
+  console.log("addWorkExperience API Called")
+
   const { companyName, certificateLink, startDate, endDate } = req.body;
   const createWorkExperience = await WorkExperience.create({
     companyName,
@@ -157,6 +166,8 @@ const addWorkExperience = asyncHandler(async (req, res) => {
 })
 
 const addSkill = asyncHandler(async (req, res) => {
+  console.log("addSkill API Called")
+
   const { skill } = req.body;
 
   if (!skill) {
@@ -294,6 +305,8 @@ const deleteSkill = asyncHandler(async (req, res) => {
 })
 
 const viewProfile = asyncHandler(async (req, res) => {
+  console.log("viewProfile API Called")
+
   const { userId } = req.params;
   const user = await User.findById(userId).populate('profileSection.education').populate('profileSection.positionOfResponsibility').populate('profileSection.project').populate('profileSection.workExperience').populate('profileSection.certificate');
 
@@ -320,6 +333,8 @@ const viewProfile = asyncHandler(async (req, res) => {
 })
 
 const getNotifications = asyncHandler(async (req, res) => {
+  console.log("getNotifications API Called")
+
   const user = await User.findById(req.user._id).populate({
     path: 'notifications',
     options: { sort: { createdAt: -1 }, limit: 10 }

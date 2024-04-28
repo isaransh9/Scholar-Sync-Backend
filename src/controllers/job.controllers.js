@@ -6,6 +6,8 @@ import { User } from "../models/user.model.js";
 import { Notification } from "../models/notification.model.js";
 
 const uploadOpenings = asyncHandler(async (req, res) => {
+  console.log("uploadOpenings API Called")
+
   const { titleOfJob, domain, stipend, isRemote, isOnSite, durationInMonths, lastDate, detailsLink } = req.body;
   let typeOfJob;
   if (isRemote) {
@@ -42,6 +44,8 @@ const uploadOpenings = asyncHandler(async (req, res) => {
 })
 
 const userAppliedOnJob = asyncHandler(async (req, res) => {
+  console.log("userAppliedOnJob API Called")
+
   const { jobId } = req.params;
   const job = await Job.findByIdAndUpdate(jobId, { $push: { appliedBy: req.user._id } }, { new: true });
 
@@ -73,6 +77,8 @@ const userAppliedOnJob = asyncHandler(async (req, res) => {
 })
 
 const getAllJobPost = asyncHandler(async (req, res) => {
+  console.log("getAllJobPost API Called")
+
   const myId = req.user._id;
   const user = await User.findById(req.user._id);
   const posts = await Job.find({ user: { $ne: myId }, appliedBy: { $nin: [myId] } }).sort({ createdAt: -1 }).populate('user');
@@ -82,6 +88,8 @@ const getAllJobPost = asyncHandler(async (req, res) => {
 })
 
 const getJobsOfSameCollege = asyncHandler(async (req, res) => {
+  console.log("getJobsOfSameCollege API Called")
+
   const userCollegeName = req.user.collegeName;
   const currentUserID = req.user._id;
   const jobs = await Job.aggregate([
@@ -120,6 +128,8 @@ const getJobsOfSameCollege = asyncHandler(async (req, res) => {
 })
 
 const getPreviousPost = asyncHandler(async (req, res) => {
+  console.log("getPreviousPost API Called")
+
   const openingIds = req.user.openings;
   const getJobs = await Job.find({ _id: { $in: openingIds } });
   return res.status(200).json(

@@ -1,7 +1,6 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
-import { log } from "console";
 
 const app = express();
 
@@ -21,21 +20,22 @@ const getReceiverSocketId = (receiverId) => {
 const userSocketMap = {}; // {userId: socketId}
 
 io.on("connection", (socket) => {
-  console.log("a user connected", socket.id);
-  const userId = socket.handshake.query.userId;  // if you pass userId as params, you can access that here
+  console.log("User connected", socket.id);
+  const userId = socket.handshake.query.userId;
+  console.log(userId);
+  if (userId !== undefined && userId !== null && userId !== '') {
+    userSocketMap[userId] = socket.id;
+  }
 
-  if (userId != "undefined") userSocketMap[userId] = socket.id;
-
-  console.log(userSocketMap);
-  // io.emit() is used to send events to all the connected clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-  // socket.on() is used to listen to the events. can be used both on client and server side
   socket.on("disconnect", () => {
-    console.log("user disconnected", socket.id);
+    console.log("User disconnected", socket.id);
     delete userSocketMap[userId];
+    console.log(userId);
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
+
 
 export { app, io, server, getReceiverSocketId };

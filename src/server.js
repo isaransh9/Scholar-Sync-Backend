@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import userRouter from './routes/user.routes.js';
 import profileRouter from './routes/profile.routes.js';
 import jobRouter from './routes/job.routes.js';
+import messageRouter from './routes/messages.routes.js';
 import connectDB from "./db/index.js";
 import { app, server } from './socket/socket.js'
 import cors from 'cors';
@@ -22,19 +23,20 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 connectDB()
-.then(() => {
-  server.listen(process.env.PORT || 3000, () => {
-    console.log(`Server listening at port :${process.env.PORT}`);
+  .then(() => {
+    server.listen(process.env.PORT || 3000, () => {
+      console.log(`Server listening at port :${process.env.PORT}`);
+    })
   })
-})
-.catch((error) => {
-  console.log("MongoDb Connection Failed", error);
-});
+  .catch((error) => {
+    console.log("MongoDb Connection Failed", error);
+  });
 
 // Routes
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/profile', profileRouter);
-app.use('/api/v1/job',jobRouter);
+app.use('/api/v1/job', jobRouter);
+app.use('/api/v1/message', messageRouter);
 // Actual url ==> http://localhost:8000/api/v1/user/register
 
 
