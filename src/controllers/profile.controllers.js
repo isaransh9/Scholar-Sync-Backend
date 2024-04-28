@@ -352,4 +352,33 @@ const getNotifications = asyncHandler(async (req, res) => {
   )
 })
 
-export { addEducation, uploadUserProfilePicture, addCertificate, addProject, addPosOfRes, addWorkExperience, addSkill, deleteEducation, deleteCertificate, deleteProject, deletePosOfRes, deleteWorkExperience, deleteSkill, viewProfile, getNotifications }
+const getProfileDetail = asyncHandler(async (req, res) => {
+  console.log('getProfileDetail API Called');
+  const myId = req.user._id;
+
+  const user = await User.findById(myId).populate('profileSection.education').populate('profileSection.positionOfResponsibility').populate('profileSection.project').populate('profileSection.workExperience').populate('profileSection.certificate');
+
+  if (!user) {
+    throw new ApiError(404, 'User not found!!');
+  }
+
+  const profileSection = {
+    ...user.profileSection.toObject(),
+    profilePicture: user.profilePicture,
+  };
+
+  if (!profileSection) {
+    throw new ApiError(404, 'User profileSection does not exist!!');
+  }
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      "Logged In user profile retrieved successfully!!",
+      profileSection
+    )
+  )
+
+})
+
+export { addEducation, uploadUserProfilePicture, addCertificate, addProject, addPosOfRes, addWorkExperience, addSkill, deleteEducation, deleteCertificate, deleteProject, deletePosOfRes, deleteWorkExperience, deleteSkill, viewProfile, getNotifications, getProfileDetail }
