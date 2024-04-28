@@ -4,11 +4,13 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Job } from "../models/jobQuery.model.js";
 import { User } from "../models/user.model.js";
 import { Notification } from "../models/notification.model.js";
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
 
 const uploadOpenings = asyncHandler(async (req, res) => {
   console.log("uploadOpenings API Called")
 
   const { titleOfJob, domain, stipend, isRemote, isOnSite, durationInMonths, lastDate, detailsLink } = req.body;
+  // console.log(req.body);
   let typeOfJob;
   if (isRemote) {
     typeOfJob = "remote";
@@ -21,11 +23,24 @@ const uploadOpenings = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'All fields are required!!');
   }
 
+  const detailsLocalPath = req.files?.detailsLink[0]?.path;
+
+  if (!detailsLocalPath) {
+    throw new ApiError(400, "File is required!!");
+  }
+
+  const fileLink = await uploadOnCloudinary(detailsLocalPath);
+
+  if (!fileLink) {
+    throw new ApiError(400, "Failed to upload on cloudinary!!");
+  }
+  
+
   const createdJob = await Job.create({
     titleOfJob,
     user: req.user._id,
     domain,
-    moreAboutJob: detailsLink,
+    moreAboutJob: fileLink.url,
     stipend,
     durationInMonths,
     lastDate,
@@ -36,6 +51,9 @@ const uploadOpenings = asyncHandler(async (req, res) => {
 
   if (!updatedUser) {
     throw new ApiError(500, 'Failed to make changes in database!!');
+  }
+  else {
+    console.log("Post Created Successfully!!");
   }
 
   return res.status(200).json(
