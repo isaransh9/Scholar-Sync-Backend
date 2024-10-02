@@ -92,7 +92,7 @@ const sendVerificationEmail = async (fullName, email, userId, purpose) => {
     html:
       "<p>Hii " +
       fullName +
-      ', please click here to <a href="http://192.168.23.223:8000/api/v1/user/verify?id=' +
+      ', please click here to <a href="https://scholar-sync-backend-3.onrender.com/api/v1/user/verify?id=' +
       userId +
       '"> Verify </a> your mail.</p>',
   };
