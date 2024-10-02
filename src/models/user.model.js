@@ -34,7 +34,6 @@ const userSchema = new Schema(
     profilePicture: {
       // Not on Signup page
       type: String, // Cloudinary Url
-      default: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     domain: [
       {
@@ -64,52 +63,54 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ['student', 'professor'],
+      enum: ["student", "professor"],
       required: true,
     },
     notifications: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Notification",
-      }
+      },
     ],
     profileSection: {
       education: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Education"
-        }
+          ref: "Education",
+        },
       ],
       project: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Project"
-        }
+          ref: "Project",
+        },
       ],
       positionOfResponsibility: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "POR"
-        }
+          ref: "POR",
+        },
       ],
       workExperience: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "WorkExperience"
-        }
+          ref: "WorkExperience",
+        },
       ],
       certificate: [
         {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "Certificate"
-        }
+          ref: "Certificate",
+        },
       ],
       skills: [
         {
-          type:String
-        }
-      ]
-    }
+          type: String,
+        },
+      ],
+    },
+    otp: { type: String }, // Store the OTP
+    otpExpiresAt: { type: Date }, // Store the expiration time for the OTP
   },
   {
     timestamps: true,

@@ -1,22 +1,23 @@
 import mongoose from "mongoose";
 
-const projectSchema = new mongoose.Schema({
-  projectTitle: {
-    type: String,
-  },
-  description: {
-    type: String,
-  },
-  projectLink: {
-    type: String,
-  },
-  skills: [
-    {
+const projectSchema = new mongoose.Schema(
+  {
+    projectTitle: {
       type: String,
-    }
-  ],
-}, {
-  timestamps: true
-});
+    },
+    description: {
+      type: String,
+    },
+    projectLink: {
+      type: String,
+    },
+    skills: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-export const Project = mongoose.model('Project', projectSchema);
+export const Project = mongoose.model("Project", projectSchema);

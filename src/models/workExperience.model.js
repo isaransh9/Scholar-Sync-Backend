@@ -1,20 +1,26 @@
 import mongoose from "mongoose";
 
-const workExperienceSchema = new mongoose.Schema({
-  companyName: {
-    type: String,
+const workExperienceSchema = new mongoose.Schema(
+  {
+    companyName: {
+      type: String,
+    },
+    certificateLink: {
+      type: String,
+    },
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
+    },
   },
-  certificateLink: {
-    type: String,
-  },
-  startDate: {
-    type: Date,
-  },
-  endDate: {
-    type: Date,
+  {
+    timestamps: true,
   }
-}, {
-  timestamps: true
-})
+);
 
-export const WorkExperience = mongoose.model('WorkExperience', workExperienceSchema);
+export const WorkExperience = mongoose.model(
+  "WorkExperience",
+  workExperienceSchema
+);

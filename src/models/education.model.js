@@ -1,26 +1,29 @@
 import mongoose from "mongoose";
 
-const educationSchema = new mongoose.Schema({
-  university: {
-    type: String,
+const educationSchema = new mongoose.Schema(
+  {
+    university: {
+      type: String,
+    },
+    degree: {
+      type: String,
+    },
+    grade: {
+      type: Number,
+    },
+    fieldOfStudy: {
+      type: String,
+    },
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
+    },
   },
-  degree: {
-    type: String,
-  },
-  grade: {
-    type: Number,
-  },
-  fieldOfStudy: {
-    type: String,
-  },
-  startDate: {
-    type: Date,
-  },
-  endDate: {
-    type: Date,
+  {
+    timestamps: true,
   }
-}, {
-  timestamps: true
-});
+);
 
-export const Education = mongoose.model('Education', educationSchema);
+export const Education = mongoose.model("Education", educationSchema);

@@ -1,1 +1,1 @@
-export const DB_NAME = "Scholar-Sync"
+export const DB_NAME = "Scholar-Sync";

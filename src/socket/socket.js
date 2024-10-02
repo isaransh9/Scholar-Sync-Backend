@@ -17,13 +17,14 @@ const getReceiverSocketId = (receiverId) => {
   return userSocketMap[receiverId];
 };
 
+// Maintaining online users
 const userSocketMap = {}; // {userId: socketId}
 
 io.on("connection", (socket) => {
   console.log("User connected", socket.id);
   const userId = socket.handshake.query.userId;
   console.log(userId);
-  if (userId !== undefined && userId !== null && userId !== '') {
+  if (userId !== undefined && userId !== null && userId !== "") {
     userSocketMap[userId] = socket.id;
   }
 
@@ -36,6 +37,5 @@ io.on("connection", (socket) => {
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
 });
-
 
 export { app, io, server, getReceiverSocketId };
